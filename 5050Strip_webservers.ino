@@ -26,6 +26,10 @@ byte currentBlue = 255;
 
 #define MAXIMUM_PATTERN_COMPONENTS 20
 
+// Wifi credentials here...
+const char* ssid = "**********";
+const char* password = "**********";
+
 // Our webserver running on HTTP
 WebServer server(80);
 
