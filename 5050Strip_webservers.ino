@@ -7,45 +7,45 @@
 
 #include "wifisecrets.h"
 
-// the number of the LED pin
+// LED 핀의 개수
 const int blueLedPin = 2;
 const int redLedPin = 0;
 const int greenLedPin = 4;
 
-// setting PWM properties
+// PWM 속성 설정
 const int freq = 5000;
 const int blueLedChannel = 10;
 const int redLedChannel = 11;
 const int greenLedChannel = 12;
 const int resolution = 8;
 
-// Tracks the current values to avoid changing needlessly
+// 불필요하게 변경되지 않도록 현재 값을 추적합니다
 byte currentRed = 255;
 byte currentGreen = 255;
 byte currentBlue = 255;
 
 #define MAXIMUM_PATTERN_COMPONENTS 20
 
-// Wifi credentials here...
+// 여기 와이파이 자격 증명...
 const char* ssid = "**********";
 const char* password = "**********";
 
-// Our webserver running on HTTP
+// HTTP에서 실행 중인 웹 서버
 WebServer server(80);
 
-// A class for specifying a color at a specific time (these are interpolated betwen)
+// 특정 시간에 색상을 지정하기 위한 클래스(이들은 보간됨)
 class ColorAndTime
 {
 public:
-  // Red, green, and blue values
+  // 빨간색, 녹색 및 파란색 값
   byte red;
   byte green;
   byte blue;
-  // Time in microseconds
+  // 시간(마이크로초)
   unsigned long time;
 
 public:
-  // Constructor to create one (userful for array initialization)
+  // 생성할 생성자(배열 초기화에 사용 가능)
   ColorAndTime(byte newRed, byte newGreen, byte newBlue, unsigned long newTime)
   {
     red = newRed;
@@ -54,7 +54,7 @@ public:
     time = newTime;
   }
 
-  // Default empty constructor used when specifying an array without initializers
+  //초기화자 없이 배열을 지정할 때 사용되는 기본 빈 생성자
   ColorAndTime()
   {
     red = 0;
@@ -65,7 +65,7 @@ public:
 
 };
 
-// Pattern Array
+// 패턴 배열
 ColorAndTime pattern[MAXIMUM_PATTERN_COMPONENTS];
 size_t statesInPattern;
 
@@ -77,7 +77,7 @@ bool connectToWifi(const char* ssid, const char* password) {
   WiFi.begin(ssid, password);
   Serial.println("");
 
-  // Wait for connection
+  // 연결 대기
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
@@ -133,30 +133,19 @@ void handlePattern() {
   }
 
   if ((patternArray.size() < 2) || (patternArray.size() > MAXIMUM_PATTERN_COMPONENTS)) {
-    // TODO: Get this error message to properly report MAXIMUM_PATTERN_COMPONENTS (sprintf)
+    // 작업: MAXIM_PATTN_COMPONTENS(스프린트)를 올바르게 보고하려면 이 오류 메시지를 가져옵니다
     server.send(400, "text/plain", "Number of pattern elements should be between 2 and 20");
     return;
   }
 
   for (size_t i = 0; i < patternArray.size(); i++)
   {
-    // TODO: Check for these components in the objects
-    // Pull the components out of the objects in the array
+    // 작업: 개체에서 이러한 구성 요소를 확인합니다
+    // 배열의 개체에서 구성 요소를 꺼냅니다
     int r = patternArray[i]["r"];
     int g = patternArray[i]["g"];
     int b = patternArray[i]["b"];
     int t = patternArray[i]["t"];
-
-    /*
-    Serial.print("R:");
-    Serial.print(r);
-    Serial.print(" G:");
-    Serial.print(g);
-    Serial.print(" B:");
-    Serial.print(b);
-    Serial.print(" T:");
-    Serial.println(t);
-    */
 
     pattern[i].red = r;
     pattern[i].green = g;
@@ -164,7 +153,7 @@ void handlePattern() {
     pattern[i].time = t;
   }
 
-  // Set the global to track how many components are actually in the array
+  // 어레이에 실제로 있는 구성 요소의 수를 추적하도록 글로벌 설정
   statesInPattern = patternArray.size();
 
   server.send(200);
@@ -173,7 +162,7 @@ void handlePattern() {
 
 void initializeDefaultPattern()
 {
-  // Create a pattern that goes from "black" thru the "rainbow" and back to "black" over 8 seconds
+  // "검은색"에서 "무지개"를 거쳐 "검은색"으로 되돌아오는 패턴을 8초에 걸쳐 만듭니다
   pattern[0] = {0, 0, 0, 0};
   pattern[1] = {0, 0, 0, 1000000L};
   pattern[2] = {255, 0, 0, 2000000L};
@@ -189,49 +178,49 @@ void initializeDefaultPattern()
 
 void setup()
 {
-  // Start the serial in case we need to see some output during debugging.
+  // 디버깅 중에 출력을 확인해야 할 경우를 대비하여 직렬을 시작합니다.
   Serial.begin(115200);
 
-  // Try to connect multiple times due to this being slightly unreliable
+  //이것이 약간 신뢰할 수 없기 때문에 여러 번 연결해 보십시오
   bool connected = false;
   while (!connected)
   {
     connected = connectToWifi(ssid, password);
   }
 
-  // Setup the channels
+  // 채널 설정
   ledcSetup(redLedChannel, freq, resolution);
   ledcSetup(greenLedChannel, freq, resolution);
   ledcSetup(blueLedChannel, freq, resolution);
 
-  // Attach the pins to the channels
+  // 채널에 핀을 부착합니다
   ledcAttachPin(redLedPin, redLedChannel);
   ledcAttachPin(greenLedPin, greenLedChannel);
   ledcAttachPin(blueLedPin, blueLedChannel);
 
-  // Write out an initial state
+  //초기 상태 작성
   ledcWrite(redLedChannel, currentRed);
   ledcWrite(greenLedChannel, currentGreen);
   ledcWrite(blueLedChannel, currentBlue);
 
-  // Fill the pattern with our default pattern
+  // 기본 패턴으로 패턴 채우기
   initializeDefaultPattern();
 
-  // Eventually this should be a page with Javascipt to call the REST API for testing
+  // 결국 테스트를 위해 REST API를 호출하려면 Javacapt가 포함된 페이지여야 합니다
   server.on("/", handleRoot);
-  // This page handles RESTful JSON POSTs to update the pattern
+  // 이 페이지는 패턴을 업데이트하기 위해 RESTful JSON POST를 처리합니다
   server.on("/pattern", HTTP_POST, handlePattern);
 
-  // Start the server
+  // 서버를 시작합니다
   server.begin();
 }
 
 void updateColorChannel(byte& currentValue, byte newValue, int channel)
 {
-  // Let's only update if the new value is different from the current value
+  //새 값이 현재 값과 다를 경우에만 업데이트합시다
   if (currentValue != newValue)
   {
-    // Update the current value
+    // 현재 값 업데이트
     currentValue = newValue;
     ledcWrite(channel, newValue);
   }
@@ -239,7 +228,7 @@ void updateColorChannel(byte& currentValue, byte newValue, int channel)
 
 void updateColorsWithPattern(unsigned long currentTime, bool invertValues)
 {
-  // Figure out which bracket we're in (which two pattern sections are we between)
+  //우리가 어느 브래킷에 있는지 파악합니다(어느 두 패턴 섹션 사이에 있는지)
   size_t colorBracketStart = 0;
   for (size_t index = 0; index < (statesInPattern - 1); index++)
   {
@@ -250,11 +239,11 @@ void updateColorsWithPattern(unsigned long currentTime, bool invertValues)
     }
   }
 
-  // Figure out how long (in time) the bracket is, and how far into it we are
+  // 브래킷의 길이와 브래킷의 거리를 파악합니다
   float bracketLength = float(pattern[colorBracketStart + 1].time - pattern[colorBracketStart].time);
   float timeIntoBracket = float(currentTime - pattern[colorBracketStart].time);
 
-  // Figure out the linearly interpolated weights of the colors on each end of the bracket
+  // 브래킷의 각 끝에 있는 색상의 선형 보간 가중치를 구합니다
   float percentageColorA = 1.0 - (timeIntoBracket / bracketLength);
   float percentageColorB = 1.0 - percentageColorA;
 
@@ -262,14 +251,14 @@ void updateColorsWithPattern(unsigned long currentTime, bool invertValues)
   byte greenValue = byte(percentageColorA * float(pattern[colorBracketStart].green) + percentageColorB * float(pattern[colorBracketStart + 1].green));
   byte blueValue = byte(percentageColorA * float(pattern[colorBracketStart].blue) + percentageColorB * float(pattern[colorBracketStart + 1].blue));
 
-  // See if we need to invert the values (good for common anode vs cathode)
+  // 값을 반전시킬 필요가 있는지 확인합니다(공통 애노드 대 캐소드에 적합)
   if (invertValues) {
     redValue = 255 - redValue;
     greenValue = 255 - greenValue;
     blueValue = 255 - blueValue;
   }
 
-  // Potentially update the channels 
+  //잠재적으로 채널 업데이트
   updateColorChannel(currentRed, redValue, redLedChannel);
   updateColorChannel(currentGreen, greenValue, greenLedChannel);
   updateColorChannel(currentBlue, blueValue, blueLedChannel);
@@ -277,10 +266,10 @@ void updateColorsWithPattern(unsigned long currentTime, bool invertValues)
 
 void loop()
 {
-  // Update colors
+  // 색상 업데이트
   unsigned long currentTime = micros() % pattern[statesInPattern - 1].time;
   updateColorsWithPattern(currentTime, false);
 
-  // Check for REST activity
+  // REST 활동 점검
   server.handleClient();
 }
