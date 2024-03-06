@@ -22,7 +22,7 @@ String header;
 // PWM제어를 위한 빨강, 초록, 파랑 핀
 const int redPin =   45;     //  GPIO45
 const int greenPin = 46;     //  GPIO46
-const int bluePin =  48;     //  GPIO49
+const int bluePin =  48;     //  GPIO48
 
 // PWM 주파수, 채널 및 비트 분해능 설정
 const int freq = 5000;
@@ -97,7 +97,7 @@ void loop(){
             client.println("<link rel=\"icon\" href=\"data:,\">");
             client.println("<link rel=\"stylesheet\" href=\"https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css\">");
             client.println("<script src=\"https://cdnjs.cloudflare.com/ajax/libs/jscolor/2.0.4/jscolor.min.js\"></script>");
-            client.println("</head><body><div class=\"container\"><div class=\"row\"><h1>ESP Color Picker</h1></div>");
+            client.println("</head><body><div class=\"container\"><div class=\"row\"><h1>All In One KIT Color Picker</h1></div>");
             client.println("<a class=\"btn btn-primary btn-lg\" href=\"#\" id=\"change_color\" role=\"button\">Change Color</a> ");
             client.println("<input class=\"jscolor {onFineChange:'update(this)'}\" id=\"rgb\"></div>");
             client.println("<script>function update(picker) {document.getElementById('rgb').innerHTML = Math.round(picker.rgb[0]) + ', ' +  Math.round(picker.rgb[1]) + ', ' + Math.round(picker.rgb[2]);");
