@@ -20,9 +20,9 @@ int pos4 = 0;
 String header;
 
 // PWM제어를 위한 빨강, 초록, 파랑 핀
-const int redPin =   45;     //  GPIO45
-const int greenPin = 46;     //  GPIO46
-const int bluePin =  48;     //  GPIO48
+const int redPin =   41;     
+const int greenPin = 42;     
+const int bluePin =  17;     
 
 // PWM 주파수, 채널 및 비트 분해능 설정
 const int freq = 5000;
